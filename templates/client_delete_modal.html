@@ -1,0 +1,20 @@
+<div class="modal-header">
+  <h5 class="modal-title">Підтвердження видалення</h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрити"></button>
+</div>
+
+<div class="modal-body">
+  {# client уже загружен сервером, подставлять имя скриптом не нужно #}
+  Видалити 
+  <strong>«{{ client.client_name }}»</strong>?
+</div>
+
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+
+  {# action указываем явно: пустой action отправил бы форму на адрес страницы списка #}
+  <form method="post" action="{% url 'client_delete' client.pk %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Так, видалити</button>
+  </form>
+</div>

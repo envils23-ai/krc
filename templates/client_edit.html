@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Редагування клієнта{% endblock %}
+    {% block content %}
+
+
+          <header class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm border-bottom py-3">
+            <div class="container">
+                <a class="navbar-brand fw-bold ms-4" href="{% url 'client_edit' client.pk %}">Редагування клієнта</a>
+                <div class="dropdown d-inline-block">
+                    <a class=" link-light dropdown-toggle text-decoration-none me-4" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                        {{ user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuLink">
+                        <li><a class="dropdown-item" href="{% url 'password_change' %}">Змінити пароль</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="{% url 'logout' %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item link-danger">
+                                    Вихід
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+          </header>
+
+     <main class="container d-flex align-items-center justify-content-center flex-grow-1 my-3">
+        <div class="col-12 col-md-12 col-lg-4">
+            
+             <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}">Головна</a></li>
+                    <li class="breadcrumb-item" aria-current="page"><a href="{% url 'client_list' %}">Реєстр клієнтів</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ client.client_code }}</li>
+                </ol>
+            </nav>
+            
+        <h2 class="text-center mb-4">Редагування клієнта</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <div class="d-flex justify-content-center gap-3 mt-4">
+                
+            <button type="submit" class="btn btn-success px-4 ">Змінити</button>
+                
+                <a href="{% url 'client_list' %}" class="btn btn-secondary">Скасувати</a>
+                
+                <button type="button"
+                class="btn btn-outline-danger"
+                data-bs-toggle="modal"
+                data-bs-target="#deleteModal"
+                hx-get="{% url 'client_delete' client.pk %}"
+                hx-target="#deleteModalContent">Видалити</button>
+                
+                </div>
+            
+        </form>
+        </div>
+        </main>
+
+     
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            {# Сюда htmx кладёт загруженный фрагмент #}
+            <div class="modal-content" id="deleteModalContent"></div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-light py-3 border-top p-3 navbar-dark bg-dark">
+        <div class="container text-center">
+            <span class="text-light">© 2025 Всі права</span>
+        </div>
+    </footer>
+
+
+
+    {% endblock content %}

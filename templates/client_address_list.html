@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Фізична адреса{% endblock %}
+
+    {% block content %}
+         
+
+          <header class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm border-bottom py-3">
+            <div class="container">
+                <a class="navbar-brand fw-bold ms-4" href="{% url 'client_address_list' %}">Реєстр адресів</a>
+                <div class="dropdown d-inline-block">
+                    <a class=" link-light dropdown-toggle text-decoration-none me-4" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                        {{ user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuLink">
+                        <li><a class="dropdown-item" href="{% url 'password_change' %}">Змінити пароль</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="{% url 'logout' %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item link-danger">
+                                    Вихід
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+          </header>
+   
+     <main class="container d-flex align-items-start justify-content-center flex-grow-1 my-0">
+        <div class="col-12 col-md-12 col-lg-10">
+         <nav aria-label="breadcrumb" class="mt-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Головна </a></li>
+                <li class="breadcrumb-item active" aria-current="page">Реєстр адресів</li>
+            </ol>
+        </nav>
+ {#>>>>>>>>>>>Поиск клиентов#}  
+            <form method="get" class="row g-2 mb-3">
+                <div class="col-12 col-md-8">
+                    <div class="row g-2">
+                        <div class="col-sm-6">
+                            <input type="text"
+                                    name="region"
+                                    value="{{ region }}"
+                                    class="form-control"
+                                    placeholder="Пошук по місту">
+                        </div>
+                        <div class="col-sm-6">
+                            
+                            <input type="text"
+                                    name="street"
+                                        value="{{ street }}"
+                                        class="form-control"
+                                        placeholder="Пошук по вулиці">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">Знайти <i class="bi bi-search"></i></button>
+                        {% if street or region %}
+                            <a href="{% url 'client_address_list' %}" class="btn btn-outline-secondary">Скинути</a>
+                        {% endif %}
+                </div>
+            </form>
+        
+ {#>>>>>>>>>>>Список клиентов#}     
+            {% if ClientAddress %}
+  <div class="row gx-2 fw-semibold text-body-secondary small pb-2 mb-2"
+       style="padding-left: 1.25rem; padding-right: 2.5rem;">
+    <div class="col-3 text-truncate">Місто</div>
+    <div class="col-6 text-truncate">Вулиця</div>
+    <div class="col-3 text-truncate">Номер будівлі</div>
+  </div>
+
+  <style>
+    .accordion-hover .accordion-button:hover {
+      background-color: rgba(0, 0, 0, 0.075);
+    }
+  </style>
+
+  <div class="accordion accordion-hover" id="addressAccordion">
+    {% for address in ClientAddress %}
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="heading-{{ address.pk }}">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapse-{{ address.pk }}"
+                  aria-expanded="false"
+                  aria-controls="collapse-{{ address.pk }}">
+            <div class="row w-100 gx-2">
+              <div class="col-3 text-truncate">{{ address.client_adress_city }}</div>
+              <div class="col-6 text-truncate">{{ address.client_adress_street }}</div>
+              <div class="col-3 text-truncate">{{ address.client_adress_building_number }}</div>
+            </div>
+          </button>
+        </h2>
+        <div id="collapse-{{ address.pk }}" class="accordion-collapse collapse"
+             aria-labelledby="heading-{{ address.pk }}"
+             data-bs-parent="#addressAccordion">
+          <div class="accordion-body">
+            <dl class="row mb-3">
+              <dt class="col-sm-3">Регіон</dt>
+              <dd class="col-sm-9">{{ address.client_adress_region|default_if_none:"—" }}</dd>
+
+              <dt class="col-sm-3">Місто</dt>
+              <dd class="col-sm-9">{{ address.client_adress_city|default_if_none:"—" }}</dd>
+
+              <dt class="col-sm-3">Вулиця</dt>
+              <dd class="col-sm-9">{{ address.client_adress_street|default_if_none:"—" }}</dd>
+
+              <dt class="col-sm-3">Номер будівлі</dt>
+              <dd class="col-sm-9">{{ address.client_adress_building_number|default_if_none:"—" }}</dd>
+
+              <dt class="col-sm-3">Клієнт</dt>
+              <dd class="col-sm-9">{{ address.client.client_name|default:"—" }}</dd>
+                
+            </dl>
+            <div class="d-flex justify-content-end gap-2">
+              <a href="{% url 'client_address_export_excel' address.pk %}"
+                 class="btn btn-sm btn-outline-success text-nowrap">
+                <i class="bi bi-file-earmark-excel"></i> Excel
+              </a>
+              <a href="{% url 'client_address_export_pdf' address.pk %}"
+                 class="btn btn-sm btn-outline-danger text-nowrap">
+                <i class="bi bi-file-earmark-pdf"></i> PDF
+              </a>
+              <a href="{% url 'client_address_edit' address.pk %}"
+                 class="btn btn-sm btn-outline-primary text-nowrap justify-content-end">Редагувати <i class="bi bi-gear"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-info">
+    {% if street or region %}За вашим запитом нічого не знайдено.{% else %}Адрес поки немає.{% endif %}
+  </div>
+{% endif %}
+{#>>>>>>>>>>>Пагинация#}        
+       {% if is_paginated %}
+    <nav aria-label="Пагінація">
+    <ul class="pagination justify-content-center mt-2 mb-2">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1&street={{ street|urlencode }}&region={{ region|urlencode }}">&laquo;</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&street={{ street|urlencode }}&region={{ region|urlencode }}">Назад</a>
+            </li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+            <li class="page-item disabled"><span class="page-link">Назад</span></li>
+        {% endif %}
+
+        {% for num in paginator.page_range %}
+            {% if num == page_obj.number %}
+                <li class="page-item active" aria-current="page">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}&street={{ street|urlencode }}&region={{ region|urlencode }}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}&street={{ street|urlencode }}&region={{ region|urlencode }}">Далі</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ paginator.num_pages }}&street={{ street|urlencode }}&region={{ region|urlencode }}">&raquo;</a>
+            </li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">Далі</span></li>
+            <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+        </div>
+        </main>
+{#>>>>>>>>>>>Поп-ап#}         
+    <div class="position-fixed end-0 p-3" style="bottom: 45px; z-index: 1080;">
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm mb-2"
+             role="alert">
+            {{ message|safe }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+</div>
+
+{% if messages %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.alert.alert-dismissible').forEach(function (el) {
+        setTimeout(function () {
+            bootstrap.Alert.getOrCreateInstance(el).close();
+        }, 3000);
+    });
+});
+</script>
+{% endif %}
+        
+    <footer class="bg-dark text-light py-3 border-top p-3 navbar-dark bg-dark">
+        <div class="container text-center">
+            <span class="text-light">© 2025 Всі права</span>
+        </div>
+    </footer>
+    {% endblock content %}
