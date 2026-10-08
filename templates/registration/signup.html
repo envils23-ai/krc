@@ -19,12 +19,29 @@
             {% csrf_token %}
             {{ form|crispy }}
             <div class="d-flex justify-content-center gap-3 mt-4">
-            <button type="submit" class="btn btn-success px-4">Зареєструватися</button>
+            <button type="submit" class="btn btn-success px-4" id="registerBtn">Зареєструватися</button>
+
+    <div class="spinner-border text-success d-none" role="status" id="registerSpinner">
+        <span class="visually-hidden">Завантаження...</span>
+    </div>
                 <a href="{% url 'login' %}" class="btn btn-secondary">Скасувати</a>
                 </div>
         </form>
         </div>
         </main>
+
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+    const btn = document.getElementById('registerBtn');
+    const spinner = document.getElementById('registerSpinner');
+    const form = btn.closest('form');
+
+    form.addEventListener('submit', function () {
+        btn.classList.add('d-none');
+        spinner.classList.remove('d-none');
+    });
+});
+</script>
 
     <footer class="bg-dark text-light py-3 border-top p-3 navbar-dark bg-dark">
         <div class="container text-center">

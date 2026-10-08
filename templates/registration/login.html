@@ -23,7 +23,10 @@
             {% csrf_token %}
             {{ form|crispy }}
             <div class="text-center mt-4">
-                <button type="submit" class="btn btn-success px-4">Увійти</button>
+                <button type="submit" class="btn btn-success px-4" id="loginBtn">
+    <span class="spinner-border spinner-border-sm d-none" id="loginSpinner" aria-hidden="true"></span>
+    <span id="loginText">Увійти</span>
+</button>
             </div>
         </form>
     </div>
@@ -41,10 +44,18 @@
     {% endif %}
 </div>
 
+
+
 <footer class="bg-dark text-light py-3 border-top p-3 navbar-dark bg-dark">
     <div class="container text-center">
         <span class="text-light">© 2025 Всі права</span>
     </div>
 </footer>
-
+    <script>
+        form.addEventListener('submit', function () {
+    document.getElementById('loginSpinner').classList.remove('d-none');
+    document.getElementById('loginText').textContent = 'Зачекайте...';
+    document.getElementById('loginBtn').disabled = true;
+});
+    </script>
 {% endblock content %}
