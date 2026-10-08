@@ -19,11 +19,15 @@
             {% csrf_token %}
             {{ form|crispy }}
             <div class="d-flex justify-content-center gap-3 mt-4">
-            <button type="submit" class="btn btn-success px-4" id="registerBtn">Зареєструватися</button>
-
-    <div class="spinner-border text-success d-none" role="status" id="registerSpinner">
-        <span class="visually-hidden">Завантаження...</span>
-    </div>
+{#            <button type="submit" class="btn btn-success px-4" id="registerBtn">Зареєструватися</button>#}
+{##}
+{#    <div class="spinner-border text-success d-none" role="status" id="registerSpinner">#}
+{#        <span class="visually-hidden">Завантаження...</span>#}
+{#    </div>#}
+                <button type="submit" class="btn btn-success px-4" id="registerBtn">
+                    <span class="spinner-border spinner-border-sm d-none" id="registerSpinner" aria-hidden="true"></span>
+                    <span id="loginText">Увійти</span>
+                </button>
                 <a href="{% url 'login' %}" class="btn btn-secondary">Скасувати</a>
                 </div>
         </form>
@@ -32,15 +36,16 @@
 
     <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('registerBtn').closest('form');
     const btn = document.getElementById('registerBtn');
     const spinner = document.getElementById('registerSpinner');
-    const form = btn.closest('form');
 
-    form.addEventListener('submit', function () {
-        btn.classList.add('d-none');
-        spinner.classList.remove('d-none');
-    });
+   form.addEventListener('submit', function () {
+    document.getElementById('registerSpinner').classList.remove('d-none');
+    document.getElementById('loginText').textContent = 'Зачекайте...';
+    document.getElementById('loginBtn').disabled = true;
 });
+   });
 </script>
 
     <footer class="bg-dark text-light py-3 border-top p-3 navbar-dark bg-dark">
