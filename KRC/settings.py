@@ -130,7 +130,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/6.1/topics/i18n/
 
 
-git add .git add .= "static/"
+STATIC_URL= "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STORAGES = {
