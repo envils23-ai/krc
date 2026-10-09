@@ -1,0 +1,14 @@
+{% for client in clients %}
+  {% include "_client_item.html" with is_new=True %}
+{% endfor %}
+
+{# убрать надпись "Клієнтів поки немає", если она была #}
+<div id="clientEmpty" hx-swap-oob="innerHTML"></div>
+
+{# обновить пагинацию (появляется страница 2, растёт число страниц) #}
+<div id="clientPagination" hx-swap-oob="true">
+  {% include "_pagination.html" %}
+</div>
+
+{# обновить курсор опроса #}
+{% include "_client_poller.html" with oob=True %}

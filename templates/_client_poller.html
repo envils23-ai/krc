@@ -1,0 +1,6 @@
+<div id="clientPoller" hidden
+     {% if oob %}hx-swap-oob="true"{% endif %}
+     hx-get="{% url 'client_list_new' %}?after={{ last_id }}&q={{ q|urlencode }}"
+     hx-trigger="every 5s [document.visibilityState === 'visible']"
+     hx-target="#clientAccordion"
+     hx-swap="afterbegin"></div>

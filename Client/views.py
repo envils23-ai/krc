@@ -31,6 +31,11 @@ from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.utils.html import format_html
 
+from django.db.models import Max
+from django.shortcuts import render
+from django.core.paginator import Paginator
+
+
 class AddressTakenError(Exception):
     pass
 
@@ -102,13 +107,50 @@ class ClientListView(LoginRequiredMixin, ListView):
     return queryset
 
   # Сохраняет искомое значение при переходах по страницам пагинации
+  # def get_context_data(self, **kwargs):
+  #   context = super().get_context_data(**kwargs)
+  #   context["q"] = self.request.GET.get("q", "").strip()
+  #   return context
+
   def get_context_data(self, **kwargs):
-    context = super().get_context_data(**kwargs)
-    context["q"] = self.request.GET.get("q", "").strip()
-    return context
+      context = super().get_context_data(**kwargs)
+      context["q"] = self.request.GET.get("q", "").strip()
+      # курсор для опроса: самый большой pk среди ВСЕХ клиентов
+      context["last_id"] = Client.objects.aggregate(m=Max("pk"))["m"] or 0
+      return context
 
 
+class ClientNewItemsView(LoginRequiredMixin, View):
+    def get(self, request):
+        try:
+            after = int(request.GET.get("after", 0))
+        except ValueError:
+            after = 0
+        q = request.GET.get("q", "").strip()
 
+        newer = Client.objects.filter(pk__gt=after)
+        last_id = newer.aggregate(m=Max("pk"))["m"]
+        if last_id is None:
+            return HttpResponse(status=204)
+
+        clients = newer.prefetch_related("addresses").order_by("-pk")
+        all_clients = Client.objects.order_by("-created_at")
+        if q:
+            clients = clients.filter(client_code__icontains=q)
+            all_clients = all_clients.filter(client_code__icontains=q)
+
+        # пагинация первой страницы (опрос работает только на ней)
+        paginator = Paginator(all_clients, ClientListView.paginate_by)
+        page_obj = paginator.get_page(1)
+
+        return render(request, "client_new_items.html", {
+            "clients": clients,
+            "last_id": last_id,
+            "q": q,
+            "paginator": paginator,
+            "page_obj": page_obj,
+            "is_paginated": paginator.num_pages > 1,
+        })
 
 
 class ClientDeleteView(LoginRequiredMixin, DeleteView):

@@ -1,0 +1,73 @@
+<div class="accordion-item{% if is_new %} client-new{% endif %}">
+  <h2 class="accordion-header" id="client-heading-{{ client.pk }}">
+    <button class="accordion-button collapsed" type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#client-collapse-{{ client.pk }}"
+            aria-expanded="false"
+            aria-controls="client-collapse-{{ client.pk }}">
+      <div class="row w-100 gx-2">
+        <div class="col-3 text-truncate" title="{{ client.client_code }}">{{ client.client_code }}</div>
+        <div class="col-9 text-truncate" title="{{ client.client_name }}">{{ client.client_name }}</div>
+      </div>
+    </button>
+  </h2>
+  <div id="client-collapse-{{ client.pk }}" class="accordion-collapse collapse"
+       aria-labelledby="client-heading-{{ client.pk }}"
+       data-bs-parent="#clientAccordion">
+    <div class="accordion-body">
+      <dl class="row mb-3">
+        <dt class="col-sm-3">Код клієнта</dt>
+        <dd class="col-sm-9">{{ client.client_code|default_if_none:"—" }}</dd>
+
+        <dt class="col-sm-3">Назва клієнта</dt>
+        <dd class="col-sm-9">{{ client.client_name }}</dd>
+
+        <dt class="col-sm-3">Регіон реєстрації</dt>
+        <dd class="col-sm-9">{{ client.client_registration_region|default_if_none:"—" }}</dd>
+
+        <dt class="col-sm-3">Місто реєстрації</dt>
+        <dd class="col-sm-9">{{ client.client_registration_city|default_if_none:"—" }}</dd>
+
+        <dt class="col-sm-3">Электронна пошта</dt>
+        <dd class="col-sm-9">{{ client.email|default_if_none:"—" }}</dd>
+
+        <dt class="col-sm-3">Номер телефону</dt>
+        <dd class="col-sm-9">{{ client.phone_display }}</dd>
+
+        <dt class="col-sm-3">Адреси</dt>
+        <dd class="col-sm-9 d-flex align-items-center">
+          {% with addresses=client.addresses.all %}
+            {% if addresses %}
+              <button type="button"
+                      class="btn btn-sm btn-outline-dark py-0 px-2"
+                      data-bs-toggle="popover"
+                      data-bs-trigger="hover click"
+                      data-bs-placement="right"
+                      data-bs-custom-class="address-popover"
+                      data-bs-title="Адреси клієнта"
+                      data-bs-html="true"
+                      data-bs-content="{% for a in addresses %}{{ a|force_escape }}{% if not forloop.last %}<br>{% endif %}{% endfor %}">
+                Адреси
+                <span class="badge text-bg-dark ms-0">{{ addresses|length }}</span>
+              </button>
+            {% else %}
+              —
+            {% endif %}
+          {% endwith %}
+        </dd>
+      </dl>
+      <div class="d-flex justify-content-end gap-2">
+        <a href="{% url 'client_export_excel' client.pk %}"
+           class="btn btn-sm btn-outline-success text-nowrap">
+          <i class="bi bi-file-earmark-excel"></i> Excel
+        </a>
+        <a href="{% url 'client_export_pdf' client.pk %}"
+           class="btn btn-sm btn-outline-danger text-nowrap">
+          <i class="bi bi-file-earmark-pdf"></i> PDF
+        </a>
+        <a href="{% url 'client_edit' client.pk %}"
+           class="btn btn-sm btn-outline-primary text-nowrap">Редагувати <i class="bi bi-gear"></i></a>
+      </div>
+    </div>
+  </div>
+</div>
