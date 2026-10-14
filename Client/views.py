@@ -184,6 +184,9 @@ class ClientDeleteView(LoginRequiredMixin, DeleteView):
       return response
 #>>>>>>>>>>>>>>>>>>>>>>>> PDF и Excel
 from django.shortcuts import get_object_or_404
+from openpyxl.styles import Font, Alignment
+from reportlab.lib.enums import TA_CENTER
+from xml.sax.saxutils import escape
 
 EXPORT_FIELDS = [
     'client_code',
@@ -235,8 +238,39 @@ class ClientExcelExportView(ClientSingleExportMixin, View):
         wb.save(response)
         return response
 
+TITLE = 'Приватне акціонерне товариство'
+FOOTER_LEFT = 'Відповідальний'
+FOOTER_RIGHT = 'Відповідальний ФІО'
+
+ADDRESS_FIELDS = [
+    'client_adress_region',
+    'client_adress_city',
+    'client_adress_street',
+    'client_adress_building_number',
+]
+
 class ClientPdfExportView(ClientSingleExportMixin, View):
     FONT_NAME = 'DejaVuSans'
+
+    def draw_footer(self, canvas, doc):
+        """Подписи внизу страницы: слева и справа."""
+        canvas.saveState()
+        canvas.setFont(self.FONT_NAME, 10)
+        y = 30
+        canvas.drawString(doc.leftMargin, y, FOOTER_LEFT)
+        canvas.drawRightString(A4[0] - doc.rightMargin, y, FOOTER_RIGHT)
+        canvas.restoreState()
+
+    @staticmethod
+    def get_addresses_markup(client):
+        """Все адреса клиента, каждый с новой строки (для Paragraph)."""
+        lines = []
+        for address in client.addresses.all():
+            parts = [getattr(address, f, None) for f in ADDRESS_FIELDS]
+            line = ', '.join(escape(str(p)) for p in parts if p)
+            if line:
+                lines.append(line)
+        return '<br/>'.join(lines) or '—'
 
     def get(self, request, *args, **kwargs):
         client = self.get_client()
@@ -248,16 +282,27 @@ class ClientPdfExportView(ClientSingleExportMixin, View):
 
         style = ParagraphStyle('cell', fontName=self.FONT_NAME, fontSize=10, leading=13)
         head_style = ParagraphStyle('head', parent=style, textColor=colors.white)
+        title_style = ParagraphStyle(
+            'title', parent=style, fontSize=14, leading=18,
+            alignment=TA_CENTER, spaceAfter=15,
+        )
 
         data = [[Paragraph('Поле', head_style), Paragraph('Значення', head_style)]]
         for label, value in self.get_rows(client):
-            data.append([Paragraph(label, style), Paragraph(value, style)])
+            data.append([Paragraph(escape(label), style), Paragraph(escape(value), style)])
+
+        # Адреси: одна строка таблицы, каждый адрес с новой строки
+        data.append([
+            Paragraph('Адреси', style),
+            Paragraph(self.get_addresses_markup(client), style),
+        ])
 
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename="client_{client.pk}.pdf"'
 
+        # bottomMargin увеличен, чтобы таблица не налезала на подписи
         doc = SimpleDocTemplate(response, pagesize=A4,
-                                leftMargin=30, rightMargin=30, topMargin=30, bottomMargin=30)
+                                leftMargin=30, rightMargin=30, topMargin=30, bottomMargin=60)
         table = Table(data, colWidths=[170, None], repeatRows=1)
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#343a40')),
@@ -265,5 +310,7 @@ class ClientPdfExportView(ClientSingleExportMixin, View):
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
             ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f2f2f2')]),
         ]))
-        doc.build([table])
+
+        story = [Paragraph(TITLE, title_style), table]
+        doc.build(story, onFirstPage=self.draw_footer, onLaterPages=self.draw_footer)
         return response
